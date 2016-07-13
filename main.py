@@ -90,14 +90,14 @@ class user_add:
                 username='',
                 password='',
                 privilege=dict(admin=0, push=0, adboard=0)))
-            if has_privilege('admin'):
-                if input_json['username'] == '': raise Exception("username 不能为空")
-                if input_json['password'] == '': raise Exception("password 不能为空")
-                if type(input_json['privilege']) != dict: raise Exception("privilege 错误")
-                db.insert('user',
-                          username=input_json['username'],
-                          password=input_json['password'],
-                          privilege=privilege_to_int(input_json['privilege']))
+            has_privilege('admin')
+            if input_json['username'] == '': raise Exception("username 不能为空")
+            if input_json['password'] == '': raise Exception("password 不能为空")
+            if type(input_json['privilege']) != dict: raise Exception("privilege 错误")
+            db.insert('user',
+                      username=input_json['username'],
+                      password=input_json['password'],
+                      privilege=privilege_to_int(input_json['privilege']))
             return json.dumps({
                 'success': 1,
                 'msg': ''})
@@ -110,11 +110,65 @@ class user_add:
 
 class user_modify:
     def POST(self):
-        pass
+        try:
+            input_json = decode_json_post(web.data(), dict(
+                uid=-1,
+                username='',
+                password=None,
+                privilege=None))
+            has_privilege('admin')
+            if input_json['uid'] == -1: raise Exception("uid 错误")
+            if input_json['username'] == '': raise Exception("username 不能为空")
+            # if input_json['password'] == '': raise Exception("password 不能为空")
+            # if type(input_json['privilege']) != dict: raise Exception("privilege 错误")
+            if input_json['privilege'] is not None: input_json['privilege'] = privilege_to_int(input_json['privilege'])
+            if len(db.select(
+                    'user',
+                    where='uid=$uid AND username=$username',
+                    vars={'uid': input_json['uid'], 'username': input_json['username']})) != 1:
+                raise Exception("uid 与 username 不匹配，请重新登录")
+            db.update('user',
+                      where='uid=$uid AND username=$username',
+                      vars={'uid': input_json['uid'], 'username': input_json['username']},
+                      **dict([(key, input_json[key]) for key in ['password', 'privilege']
+                              if input_json.get(key) is not None])
+                      )
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            # traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
+
 
 class user_delete:
     def POST(self):
-        pass
+        try:
+            input_json = decode_json_post(web.data(), dict(
+                uid=-1,
+                username=''))
+            has_privilege('admin')
+            if input_json['uid'] == -1: raise Exception("uid 错误")
+            if input_json['username'] == '': raise Exception("username 不能为空")
+            if len(db.select(
+                    'user',
+                    where='uid=$uid AND username=$username',
+                    vars={'uid': input_json['uid'], 'username': input_json['username']})) != 1:
+                raise Exception("uid 与 username 不匹配，请重新登录")
+            db.delete('user',
+                      where='uid=$uid AND username=$username',
+                      vars={'uid': input_json['uid'], 'username': input_json['username']})
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            # traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
+
 
 class msg_push:
     def POST(self):
@@ -139,6 +193,7 @@ def privilege_to_int(priv_dict):
 
 def has_privilege(key):
     # 如果不读数据库的话就可以从 session 里读
+    # print session.login
     if not session.login:
         raise Exception('请登录后再操作')
     result = list(db.select(
@@ -152,6 +207,12 @@ def has_privilege(key):
         raise Exception('权限不足')
     else:
         raise Exception('登录错误，请重新登录或清空 cookies')
+
+
+def arguments_verify(params):
+    for param in params:
+        if type(param['value']) != param['type']: raise Exception('%s 错误' % param['key'])
+        if param['value'] == param['empty']: raise Exception('%s 不能为空' % param['key'])
 
 
 # 如果客户端传过来的是
