@@ -29,7 +29,7 @@ class weather:
         # print key, weather_api
         if key not in weather_api:
             raise web.notfound()
-        r = requests.get(weather_api['now'])
+        r = requests.get(weather_api[key])
         web.header('content-type', 'application/json')
         return r.json()
 
