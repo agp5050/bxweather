@@ -10,6 +10,9 @@ import traceback
 
 urls = (
     '/api/weather/(.+)', 'weather',
+    '/api/usr/clothes', 'clothes',
+    '/api/usr/equip', 'equip',
+    '/api/usr/caution', 'caution',
     '/api/user/login', 'user_login',
     '/api/user/logout', 'user_logout',
     '/api/user/status', 'user_status',
@@ -20,8 +23,8 @@ urls = (
 )
 
 # 天气预报的 API
-weather_api = {'now': 'http://127.0.0.1:8080/api/weather/now',
-               'further': 'http://127.0.0.1:8080/api/weather/further'}
+weather_api = {'now': 'http://172.17.14.5:8080/teamwork2/api/weather/now',
+               'further': 'http://172.17.14.5:8080/teamwork2/api/weather/further'}
 
 
 class weather:
@@ -31,7 +34,33 @@ class weather:
             raise web.notfound()
         r = requests.get(weather_api[key])
         web.header('content-type', 'application/json')
-        return r.json()
+        return r.text
+
+
+class clothes:
+    def GET(self):
+        r = requests.get(weather_api['now']).json()
+        r_5 = requests.get(weather_api['further']).json()
+        if r['main']['temp'] < 10:
+            clothes_1 = "穿衣指数：厚"
+        else:
+            if r['main']['temp'] < 20:
+                clothes_1 = "穿衣指数：中"
+            else:
+                clothes_1 = "穿衣指数：薄"
+        if r['main']['temp_max'] - r['main']['temp_min'] >= 5:
+            clothes_2 = "夜间温差较大，注意睡眠！"
+        else:
+            clothes_2 = ""
+        if (abs(r_5['1']['temp'] - r_5['0']['temp']) > 5) or (abs(r_5['2']['temp'] - r_5['0']['temp']) > 5):
+            clothes_3 = "近日温差较大，注意穿衣保暖！"
+        else:
+            clothes_3 = ""
+        web.header('content-type', 'application/json')
+        return json.dumps({
+            'clothes_1': clothes_1,
+            'clothes_2': clothes_2,
+            'clothes_3': clothes_3})
 
 
 class user_login:
@@ -54,7 +83,7 @@ class user_login:
             'login': session.login,
             'uid': session.uid,
             'username': session.username,
-            'privilege': session.privilege})
+            'privilege': int_to_privilege(session.privilege)})
 
 
 class user_logout:
@@ -80,7 +109,7 @@ class user_status:
             'login': session.login,
             'uid': session.uid,
             'username': session.username,
-            'privilege': session.privilege})
+            'privilege': int_to_privilege(session.privilege)})
 
 
 class user_add:
