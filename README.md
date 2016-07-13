@@ -20,9 +20,9 @@ Win-build: [http://www.codegood.com/downloads](http://www.codegood.com/downloads
 
 
 ## 可能会有用的东西
-web.py session 文档: [http://webpy.org/cookbook/sessions.zh-cn](http://webpy.org/cookbook/sessions.zh-cn)  
-web.py 操作 cookie: [http://webpy.org/cookbook/cookies.zh-cn](http://webpy.org/cookbook/cookies.zh-cn)  
-web.py db 操作: [http://webpy.readthedocs.io/en/latest/db.html](http://webpy.readthedocs.io/en/latest/db.html)  
+web.py session: [http://webpy.org/cookbook/sessions.zh-cn](http://webpy.org/cookbook/sessions.zh-cn)  
+web.py cookie: [http://webpy.org/cookbook/cookies.zh-cn](http://webpy.org/cookbook/cookies.zh-cn)  
+web.py db: [http://webpy.readthedocs.io/en/latest/db.html](http://webpy.readthedocs.io/en/latest/db.html)  
 快速上手 requests: [http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies](http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies)  
 前后端分离登录问题: [https://segmentfault.com/q/1010000005795784](https://segmentfault.com/q/1010000005795784)  
 curl 指南: [http://www.ruanyifeng.com/blog/2011/09/curl.html](http://www.ruanyifeng.com/blog/2011/09/curl.html)  
