@@ -66,7 +66,7 @@ class user_logout:
         except Exception, e:
             return json.dumps({
                 'success': 0,
-                'msg': e.message})
+                'msg': str(e)})
         return json.dumps({
             'success': 1,
             'msg': ''})
@@ -91,6 +91,9 @@ class user_add:
                 password='',
                 privilege=dict(admin=0, push=0, adboard=0)))
             if has_privilege('admin'):
+                if input_json['username'] == '': raise Exception("username 不能为空")
+                if input_json['password'] == '': raise Exception("password 不能为空")
+                if type(input_json['privilege']) != dict: raise Exception("privilege 错误")
                 db.insert('user',
                           username=input_json['username'],
                           password=input_json['password'],
@@ -99,9 +102,10 @@ class user_add:
                 'success': 1,
                 'msg': ''})
         except Exception, e:
+            # traceback.print_exc()
             return json.dumps({
                 'success': 0,
-                'msg': e.message})
+                'msg': str(e)})
 
 
 class user_modify:
@@ -117,11 +121,11 @@ class msg_push:
         pass
 
 
-def int_to_privilege(priv):
+def int_to_privilege(priv_num):
     priv_list = ['adboard', 'push', 'admin']
-    if type(priv) == int or type(priv) == long or priv < 0:
+    if not (type(priv_num) == int or type(priv_num) == long) or priv_num < 0:
         return dict([(key, 0) for key in priv_list])
-    return dict([(priv_list[-(index+1)], 1 if priv & (0x1 << index) else 0) for index in range(len(priv_list))])
+    return dict([(priv_list[-(index+1)], 1 if priv_num & (0x1 << index) else 0) for index in range(len(priv_list))])
 
 
 def privilege_to_int(priv_dict):
@@ -142,6 +146,7 @@ def has_privilege(key):
         where='uid=$uid AND username=$username',
         vars={'uid': session.uid, 'username': session.username}))
     if len(result) == 1:
+        # print int_to_privilege(result[0].privilege)
         if int_to_privilege(result[0].privilege).get(key) == 1:
             return True
         raise Exception('权限不足')
@@ -153,13 +158,13 @@ def has_privilege(key):
 def decode_json_post(data, params):
     result = {}
     try:
-        print type(data), data
+        # print type(data), data
         result = json.loads(data)
-        if type(result) != dict:
+        if type(result) != dict: # double-json problem
             result = json.loads(result)
-        print type(result), result
+        # print type(result), result
     except Exception, e:
-        print "Error: %s" % e.message
+        # print "Error: %s" % str(e)
         traceback.print_exc()
         raise web.badrequest()
     #return dict([(key, paramsf[key]) for key in params if key not in result]
