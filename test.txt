@@ -1,0 +1,10 @@
+[status]
+curl -i localhost:1234/api/user/status
+curl -i --cookie "webpy_session_id=13c81c5c328b44bb9dd9dc02aee4ee3d36283fc0" localhost:1234/api/user/status
+
+[login]
+curl -i -X POST --data "username=admin&password=1234" localhost:1234/api/user/login
+
+[logout]
+curl -i --cookie "webpy_session_id=13c81c5c328b44bb9dd9dc02aee4ee3d36283fc0" -X POST localhost:1234/api/user/logout
+
