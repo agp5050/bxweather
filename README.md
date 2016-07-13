@@ -17,7 +17,7 @@ Win-build: [http://www.codegood.com/downloads](http://www.codegood.com/downloads
 **MySQL-python 的安装有点奇葩...必须对应 Python 版本与32/64位，而且在 Win 下不能用 pip 安装**
 
 ## 可能会有用的东西
-web.py session 文档: [http://webpy.org/cookbook/sessions.zh-cn](http://webpy.org/cookbook/sessions.zh-cn)
+web.py session 文档: [http://webpy.org/cookbook/sessions.zh-cn](http://webpy.org/cookbook/sessions.zh-cn)  
 web.py 操作 cookie: [http://webpy.org/cookbook/cookies.zh-cn](http://webpy.org/cookbook/cookies.zh-cn)  
 快速上手 requests: [http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies](http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies)  
 前后端分离登录问题: [https://segmentfault.com/q/1010000005795784](https://segmentfault.com/q/1010000005795784)  
