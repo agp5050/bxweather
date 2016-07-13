@@ -153,8 +153,11 @@ def has_privilege(key):
 def decode_json_post(data, params):
     result = {}
     try:
-        print data
+        print type(data), data
         result = json.loads(data)
+        if type(result) != dict:
+            result = json.loads(result)
+        print type(result), result
     except Exception, e:
         print "Error: %s" % e.message
         traceback.print_exc()
