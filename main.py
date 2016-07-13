@@ -38,8 +38,9 @@ class user_login:
     def POST(self):
         # print web.input()
         # print web.data()
-        web.data()
-        username, password = web.input().username, web.input().password
+        input_json = decode_json_post(web.data(), dict(username='', password=''))
+        # print input_json
+        username, password = input_json['username'], input_json['password']
         result = list(db.select(
             'user',
             where='username=$username AND password=$password',
@@ -85,8 +86,23 @@ class user_status:
 class user_add:
     def POST(self):
         try:
+            input_json = decode_json_post(web.data(), dict(
+                username='',
+                password='',
+                privilege=dict(admin=0, push=0, adboard=0)))
+            if has_privilege('admin'):
+                db.insert('user',
+                          username=input_json['username'],
+                          password=input_json['password'],
+                          privilege=privilege_to_int(input_json['privilege']))
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            return json.dumps({
+                'success': 0,
+                'msg': e.message})
 
-        pass
 
 class user_modify:
     def POST(self):
@@ -102,14 +118,14 @@ class msg_push:
 
 
 def int_to_privilege(priv):
-    priv_list = ['adboard', 'push', 'user']
+    priv_list = ['adboard', 'push', 'admin']
     if type(priv) == int or type(priv) == long or priv < 0:
         return dict([(key, 0) for key in priv_list])
     return dict([(priv_list[-(index+1)], 1 if priv & (0x1 << index) else 0) for index in range(len(priv_list))])
 
 
 def privilege_to_int(priv_dict):
-    priv_list = ['adboard', 'push', 'user']
+    priv_list = ['adboard', 'push', 'admin']
     priv_num = 0
     for index in range(len(priv_list)):
         if priv_dict.get(priv_list[-(index + 1)]) == 1:
@@ -137,6 +153,7 @@ def has_privilege(key):
 def decode_json_post(data, params):
     result = {}
     try:
+        print data
         result = json.loads(data)
     except Exception, e:
         print "Error: %s" % e.message
