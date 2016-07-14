@@ -7,15 +7,6 @@ import requests
 
 
 db = web.database(dbn='mysql', db='test', user='', pw='')
-urls = {
-    'user_login': 'http://127.0.0.1:1234/api/user/login',
-    'user_logout': 'http://127.0.0.1:1234/api/user/logout',
-    'user_status': 'http://127.0.0.1:1234/api/user/status',
-    'user_add': 'http://127.0.0.1:1234/api/user/add',
-    'user_modify': 'http://127.0.0.1:1234/api/user/modify',
-    'user_delete': 'http://127.0.0.1:1234/api/user/delete',
-    'msg_push': 'http://127.0.0.1:1234/api/msg/push'
-}
 
 # status
 r = requests.get('http://127.0.0.1:1234/api/user/status')
