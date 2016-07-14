@@ -242,7 +242,8 @@ class user_all:
         web.header('content-type', 'application/json')
         try:
             has_privilege('admin')
-            query_result = db.select('user')
+            # ASC 正序（从小到大），DESC 逆序
+            query_result = db.query("SELECT * FROM user ORDER BY username ASC")
             result = []
             for user in query_result:
                 result.append({'uid': user.uid,
