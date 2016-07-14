@@ -163,9 +163,96 @@ print 'true msg push:\t', r.json()
 
 
 # msg_delete
+r = requests.post('http://127.0.0.1:1234/api/user/login', json=json.dumps(dict(username='admin', password='1234')))
+cookies = dict(webpy_session_id=r.cookies['webpy_session_id'])
+q = db.query('SELECT * FROM msg ORDER BY id DESC')[0]
+# false
+r = requests.post(
+    'http://127.0.0.1:1234/api/msg/delete',
+    json=json.dumps(dict(id=q.id)))
+print 'false msg delete:\t', r.json()
+
+r = requests.post(
+    'http://127.0.0.1:1234/api/msg/delete', cookies=cookies,
+    json=json.dumps(dict(id=-2)))
+print 'false msg delete:\t', r.json()
+
+# true
+r = requests.post(
+    'http://127.0.0.1:1234/api/msg/delete', cookies=cookies,
+    json=json.dumps(dict(id=q.id)))
+print 'true msg delete:\t', r.json()
+
+
 # msg_query
+r = requests.get('http://127.0.0.1:1234/api/msg/query/abcd')
+print 'false msg query:\t', r
+
+# true
+r = requests.get('http://127.0.0.1:1234/api/msg/query/today')
+print 'true msg query:\t', r
+
+r = requests.get('http://127.0.0.1:1234/api/msg/query/week')
+print 'true msg query:\t', r.json()
+
+r = requests.get('http://127.0.0.1:1234/api/msg/query/all')
+print 'true msg query:\t', r.json()
+
 
 # adboard_add
-# adboard_delete
-# adboard_query
+r = requests.post('http://127.0.0.1:1234/api/user/login', json=json.dumps(dict(username='admin', password='1234')))
+cookies = dict(webpy_session_id=r.cookies['webpy_session_id'])
+# false
+r = requests.post(
+    'http://127.0.0.1:1234/api/adboard/add',
+    json=json.dumps(dict(title='title 测试', editor='editor 测试', details='details 测试', starttime='2016-07-14T13:58:00.000Z')))
+print 'false adboard add:\t', r.json()
 
+# true
+r = requests.post(
+    'http://127.0.0.1:1234/api/adboard/add', cookies=cookies,
+    json=json.dumps(dict(title='title 测试', editor='editor 测试', details='details 测试', starttime='2016-07-14T13:58:00.000Z')))
+print 'true adboard add:\t', r.json()
+
+# adboard_delete
+r = requests.post('http://127.0.0.1:1234/api/user/login', json=json.dumps(dict(username='admin', password='1234')))
+cookies = dict(webpy_session_id=r.cookies['webpy_session_id'])
+q = db.query('SELECT * FROM adboard ORDER BY id DESC')[0]
+# false
+r = requests.post(
+    'http://127.0.0.1:1234/api/adboard/delete',
+    json=json.dumps(dict(id=q.id)))
+print 'false adboard delete:\t', r.json()
+
+r = requests.post(
+    'http://127.0.0.1:1234/api/adboard/delete', cookies=cookies,
+    json=json.dumps(dict(id=-2)))
+print 'false adboard delete:\t', r.json()
+
+# true
+r = requests.post(
+    'http://127.0.0.1:1234/api/adboard/delete', cookies=cookies,
+    json=json.dumps(dict(id=q.id)))
+print 'true adboard delete:\t', r.json()
+
+
+# adboard_query
+# false
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/abcd')
+print 'false adboard query:\t', r
+
+# true
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/today')
+print 'true adboard query:\t', r.json()
+
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/week')
+print 'true adboard query:\t', r.json()
+
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/expired')
+print 'true adboard query:\t', r.json()
+
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/future')
+print 'true adboard query:\t', r.json()
+
+r = requests.get('http://127.0.0.1:1234/api/adboard/query/all')
+print 'true adboard query:\t', r.json()
