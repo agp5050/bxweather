@@ -16,10 +16,16 @@ urls = (
     '/api/user/login', 'user_login',
     '/api/user/logout', 'user_logout',
     '/api/user/status', 'user_status',
+    '/api/user/all', 'user_all',
     '/api/user/add', 'user_add',
     '/api/user/modify', 'user_modify',
     '/api/user/delete', 'user_delete',
     '/api/msg/push', 'msg_push',
+    '/api/msg/delete', 'msg_delete',
+    '/api/msg/query/(.+)', 'msg_query',
+    '/api/adboard/add', 'ad_add',
+    '/api/adboard/delete', 'ad_delete',
+    '/api/adboard/query/(.+)', 'ad_query',
 )
 
 # 天气预报的 API
@@ -39,28 +45,112 @@ class weather:
 
 class clothes:
     def GET(self):
-        r = requests.get(weather_api['now']).json()
-        r_5 = requests.get(weather_api['further']).json()
-        if r['main']['temp'] < 10:
-            clothes_1 = "穿衣指数：厚"
-        else:
-            if r['main']['temp'] < 20:
+        # 计算9点到18点的平均值，因为有可能时间段缺失。
+        def cal_avgtemp(weathers):
+            try:
+                l = [float(w['main']['temp']) for w in weathers if 9 <= int(w['dt'].split()[-1].split(':')[0]) <= 18]
+                return reduce(lambda x, y: x + y, l) / len(l)
+            except Exception, e:
+                traceback.print_exc()
+                return 0.0
+
+        web.header('content-type', 'application/json')
+        try:
+            clothes_1 = ''
+            clothes_2 = ''
+            clothes_3 = ''
+            r = requests.get(weather_api['now']).json()
+            r_5 = requests.get(weather_api['further']).json()
+            temp = trans_value(r['main']['temp'], float, 0.0)
+            if temp < 10:
+                clothes_1 = "穿衣指数：厚"
+            elif temp < 20:
                 clothes_1 = "穿衣指数：中"
             else:
                 clothes_1 = "穿衣指数：薄"
-        if r['main']['temp_max'] - r['main']['temp_min'] >= 5:
-            clothes_2 = "夜间温差较大，注意睡眠！"
-        else:
-            clothes_2 = ""
-        if (abs(r_5['1']['temp'] - r_5['0']['temp']) > 5) or (abs(r_5['2']['temp'] - r_5['0']['temp']) > 5):
-            clothes_3 = "近日温差较大，注意穿衣保暖！"
-        else:
-            clothes_3 = ""
+            temp_max = trans_value(r['main']['temp_max'], float, 0.0)
+            temp_min = trans_value(r['main']['temp_min'], float, 0.0)
+            if temp_max - temp_min >= 5:
+                clothes_2 = "夜间温差较大，注意睡眠！"
+            avgtemp = [cal_avgtemp(r_5[day]) for day in ['0', '1', '2']]
+            if abs(avgtemp[0] - avgtemp[1]) >= 5 or abs(avgtemp[0] - avgtemp[1]) >= 5:
+                clothes_3 = "近日温差较大，注意穿衣保暖！"
+            return json.dumps({
+                'clothes_1': clothes_1,
+                'clothes_2': clothes_2,
+                'clothes_3': clothes_3})
+        except Exception, e:
+            return json.dumps({
+                'clothes_1': '',
+                'clothes_2': '',
+                'clothes_3': ''})
+
+
+class equip:
+    def GET(self):
         web.header('content-type', 'application/json')
-        return json.dumps({
-            'clothes_1': clothes_1,
-            'clothes_2': clothes_2,
-            'clothes_3': clothes_3})
+        try:
+            equip_1 = ""
+            equip_2 = ""
+            r = requests.get(weather_api['now']).json()
+            # TO BE CONTINUE: 查description
+            # main = r.weather.description
+            key = trans_value(r['weather']['main'], str.lower, '')
+            if key == "clear":
+                equip_1 = "天气晴朗，注意防晒！"
+            elif key == "clouds":
+                equip_1 = "有降雨概率，请备好伞具！"
+            else:
+                equip_1 = "今日有雨，备好伞具！"
+                equip_2 = "雨天路滑，注意骑行！"
+            return json.dumps({
+                'equip_1': equip_1,
+                'equip_2': equip_2
+                })
+        except Exception, e:
+            traceback.print_exc()
+            return json.dumps({
+                'equip_1': '',
+                'equip_2': ''
+            })
+
+
+class caution:
+    def GET(self):
+        web.header('content-type', 'application/json')
+        try:
+            caution_1 = ""
+            caution_2 = ""
+            caution_3 = ""
+            r = requests.get(weather_api['now']).json()
+            humidity = trans_value(r['main']['humidity'], float, 0.0)
+            temp = trans_value(r['main']['temp'], float, 0.0)
+            windspeed = trans_value(r['wind']['speed'], float, 0.0)
+            key = trans_value(r['weather']['main'], str.lower, '')
+            if humidity < 45:
+                caution_1 = "天干气躁，小心上火，多喝水！"
+            if humidity > 65 and temp > 30:
+                caution_1 = "高温高湿，注意防暑降温，警惕心血管疾病的发生！"
+            if 10.8 < windspeed < 20:
+                caution_2 = "风力较大，出行注意安全！"
+            if windspeed >= 20:
+                caution_2 = "台风天气，谨慎出行！"
+            if windspeed <= 10.8 and 10 <= temp <= 26 and (key == 'clear' or key == 'clouds'):
+                caution_3 = "天气状况良好，适合出行玩乐～"
+            else:
+                caution_3 = "今日适宜写代码／睡觉"
+            return json.dumps({
+                'caution_1': caution_1,
+                'caution_2': caution_2,
+                'caution_3': caution_3
+            })
+        except Exception, e:
+            traceback.print_exc()
+            return json.dumps({
+                'caution_1': '',
+                'caution_2': '',
+                'caution_3': ''
+            })
 
 
 class user_login:
@@ -114,6 +204,7 @@ class user_status:
 
 class user_add:
     def POST(self):
+        web.header('content-type', 'application/json')
         try:
             input_json = decode_json_post(web.data(), dict(
                 username='',
@@ -137,8 +228,25 @@ class user_add:
                 'msg': str(e)})
 
 
+class user_all:
+    def GET(self):
+        web.header('content-type', 'application/json')
+        try:
+            has_privilege('admin')
+            query_result = db.select('user')
+            result = []
+            for user in query_result:
+                result.append({'uid': user.uid,
+                               'username': user.username,
+                               'privilege': int_to_privilege(user.privilege)})
+            return json.dumps(result)
+        except Exception, e:
+            return json.dumps([])
+
+
 class user_modify:
     def POST(self):
+        web.header('content-type', 'application/json')
         try:
             input_json = decode_json_post(web.data(), dict(
                 uid=-1,
@@ -174,6 +282,7 @@ class user_modify:
 
 class user_delete:
     def POST(self):
+        web.header('content-type', 'application/json')
         try:
             input_json = decode_json_post(web.data(), dict(
                 uid=-1,
@@ -201,7 +310,31 @@ class user_delete:
 
 class msg_push:
     def POST(self):
-        pass
+        web.header('content-type', 'application/json')
+        def POST(self):
+            try:
+                input_json = decode_json_post(web.data(), dict(
+                    title='',
+                    editor='',
+                    details='',
+                    url=''))
+                has_privilege('push')
+                if len(db.insert('msg',
+                          title=input_json['title'],
+                          editor=input_json['editor'],
+                          details=input_json['details'],
+                          url=input_json['url'] != 1)):
+                    raise Exception('数据错误')
+
+                # 极光的 API
+                return json.dumps({
+                    'success': 1,
+                    'msg': ''})
+            except Exception, e:
+                # traceback.print_exc()
+                return json.dumps({
+                    'success': 0,
+                    'msg': str(e)})
 
 
 def int_to_privilege(priv_num):
@@ -270,6 +403,13 @@ def set_session(login=0, uid=0, username='', privilege=0):
     session.uid = uid
     session.username = username
     session.privilege = privilege
+
+
+def trans_value(value, tran_func, default):
+    try:
+        return tran_func(value)
+    except Exception, e:
+        return default
 
 
 class MyApplication(web.application):
