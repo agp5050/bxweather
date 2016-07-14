@@ -375,6 +375,13 @@ class msg_push:
                 'msg': str(e)})
 
 
+class msg_query:
+    pass
+
+class msg_delete:
+    pass
+
+
 class ad_add:
     # 时间都以 UTC 时间请求
     def POST(self):
@@ -407,17 +414,82 @@ class ad_add:
                 'msg': str(e)})
 
 
+class ad_query:
+    def GET(self, key):
+        today_utc = time.time()
+        today_utc8_gm = get_utc8_gm(today_utc)
+        q = None
+        if key == 'today':
+            start_utc = op_utc(
+                today_utc, 'minus',
+                today_utc8_gm.tm_sec, today_utc8_gm.tm_min, today_utc8_gm.tm_hour)
+            end_utc = op_utc(
+                today_utc, 'add',
+                60 - today_utc8_gm.tm_sec, 60 - today_utc8_gm.tm_min, 24 - today_utc8_gm.tm_hour,)
+            start = construct_localtime(start_utc)
+            end = construct_localtime(end_utc)
+            q = db.query("SELECT * FROM adboard WHERE starttime >= '%s' AND starttime <= '%s' ORDER BY starttime DESC" % (start, end))
+
+        elif key == 'week':
+            start_utc = op_utc(
+                today_utc, 'minus',
+                today_utc8_gm.tm_sec, today_utc8_gm.tm_min, today_utc8_gm.tm_hour, today_utc8_gm.tm_wday)
+            end_utc = op_utc(
+                today_utc, 'add',
+                60 - today_utc8_gm.tm_sec, 60 - today_utc8_gm.tm_min, 24 - today_utc8_gm.tm_hour,
+                6 - today_utc8_gm.tm_wday)
+            start = construct_localtime(start_utc)
+            end = construct_localtime(end_utc)
+            q = db.query("SELECT * FROM adboard WHERE starttime >= '%s' AND starttime <= '%s' ORDER BY starttime DESC" % (start, end))
+
+        elif key == 'expired':
+            t = construct_localtime()
+            q = db.query("SELECT * FROM adboard WHERE starttime <= '%s' ORDER BY starttime DESC" % t)
+        elif key == 'future':
+            t = construct_localtime()
+            q = db.query("SELECT * FROM adboard WHERE starttime >= '%s' ORDER BY starttime DESC" % t)
+        elif key == 'all':
+            q = db.query("SELECT * FROM adboard")
+        else:
+            raise web.badrequest()
+
+        result = []
+        for ad in q:
+            result.append({
+                'id': ad.id,
+                'editor': ad.editor,
+                'title': ad.title,
+                'details': ad.details,
+                'posttime': ad.posttime.strftime('%Y-%m-%d %H:%m')
+            })
+        return json.dumps(result)
+
+
 class ad_delete:
     def POST(self):
         pass
 
+
 # 返回 'yyyy-mm-dd hh:mm:ss'
 # 例如 '2016-07-14 13:58:00'
 # 传入 UTC 时间，返回中国标准时间
+def op_utc(utc, op, s=0, m=0, h=0, d=0):
+    delta = s + m * 60 + h * 60 * 60 + d * 24 * 60 * 60
+    if op == 'add':
+        utc += delta
+    elif op == 'minus':
+        utc -= delta
+    return utc
+
+
+def get_utc8_gm(utc=None):
+    if utc is None: utc = time.time()
+    utc += 8 * 60 * 60  # UTF+8
+    return time.gmtime(utc)
+
+
 def construct_localtime(utc=None):
-    if utc == None: utc = time.time()
-    utc += 8*60*60  # UTF+8
-    s = time.gmtime(utc)
+    s = get_utc8_gm(utc)
     return '%4d-%02d-%02d %02d:%02d:%02d' % (
         s[0], s[1], s[2], s[3], s[4], s[5]
     )
@@ -475,6 +547,7 @@ def decode_json_post(data, params):
     result = {}
     try:
         # print type(data), data
+        # print web.ctx.env
         result = json.loads(data)
         if type(result) != dict: # double-json problem
             result = json.loads(result)
@@ -521,7 +594,7 @@ if __name__ == "__main__":
         app,
         web.session.DiskStore('sessions'),
         initializer={'login': 0, 'uid': 0, 'username': '', 'privilege': 0})
-    db = web.database(dbn='mysql', db='test', user='', pw='')
+    db = web.database(dbn='mysql', db='test', user='', pw='', charset='utf8')
     app.run(port=1234)
 
 
