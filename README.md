@@ -26,3 +26,4 @@ web.py db: [http://webpy.readthedocs.io/en/latest/db.html](http://webpy.readthed
 快速上手 requests: [http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies](http://docs.python-requests.org/zh_CN/latest/user/quickstart.html#cookies)  
 前后端分离登录问题: [https://segmentfault.com/q/1010000005795784](https://segmentfault.com/q/1010000005795784)  
 curl 指南: [http://www.ruanyifeng.com/blog/2011/09/curl.html](http://www.ruanyifeng.com/blog/2011/09/curl.html)  
+Git 远程操作详解: [http://www.ruanyifeng.com/blog/2014/06/git_remote.html](http://www.ruanyifeng.com/blog/2014/06/git_remote.html)  
