@@ -563,9 +563,8 @@ def construct_localtime(utc=None):
 
 # 转化 '2016-07-14T13:58:00.000Z'
 def decode_time(time_str):
-    return construct_localtime(
-        time.mktime(
-            time.strptime(time_str.split('.')[0], '%Y-%m-%dT%H:%M:%S')))
+    return construct_localtime(time.mktime(
+        time.strptime(time_str.split('.')[0], '%Y-%m-%dT%H:%M:%S')) - time.timezone)
 
 
 def int_to_privilege(priv_num):
