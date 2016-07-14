@@ -3,7 +3,9 @@
 
 import web
 import json
+import jpush
 import requests
+import base64
 import sys
 import traceback
 
@@ -38,9 +40,13 @@ class weather:
         # print key, weather_api
         if key not in weather_api:
             raise web.notfound()
-        r = requests.get(weather_api[key])
-        web.header('content-type', 'application/json')
-        return r.text
+        try:
+            r = requests.get(weather_api[key])
+            web.header('content-type', 'application/json')
+            return r.text
+        except Exception, e:
+            traceback.print_exc()
+            raise web.internalerror()
 
 
 class clothes:
@@ -169,7 +175,10 @@ class user_login:
         else:
             set_session()
         web.header('content-type', 'application/json')
+        # print session.session_id, web.config.session_parameters['cookie_name']
         return json.dumps({
+            'session_cookie_name': web.config.session_parameters['cookie_name'],
+            'session_id': session.session_id,
             'login': session.login,
             'uid': session.uid,
             'username': session.username,
@@ -310,31 +319,57 @@ class user_delete:
 
 class msg_push:
     def POST(self):
-        web.header('content-type', 'application/json')
-        def POST(self):
-            try:
-                input_json = decode_json_post(web.data(), dict(
-                    title='',
-                    editor='',
-                    details='',
-                    url=''))
-                has_privilege('push')
-                if len(db.insert('msg',
-                          title=input_json['title'],
-                          editor=input_json['editor'],
-                          details=input_json['details'],
-                          url=input_json['url'] != 1)):
-                    raise Exception('数据错误')
+        def server_push(msg, url='https://api.jpush.cn/v3/push', app_key='6c2a93e704b62871e6582b58', master_secret='49c60d5092b30b66d2e46a46'):
+            r = requests.post(
+                url,
+                headers={
+                    'content-type': 'application/json',
+                    'Authorization': 'Basic %s' % base64.b64encode('%s:%s' % (app_key, master_secret))
+                },
+                json=dict(
+                    platform='all',
+                    audience='all',
+                    notification=dict(
+                        alert='%s: %s' % (msg['editor'], msg['title']),
+                        extras=dict(url=msg['url'])
+                    ))
+                )
+            # print r.json()
+            if r.status_code != 200:
+                raise Exception('推送不成功')
 
-                # 极光的 API
-                return json.dumps({
-                    'success': 1,
-                    'msg': ''})
-            except Exception, e:
-                # traceback.print_exc()
-                return json.dumps({
-                    'success': 0,
-                    'msg': str(e)})
+        web.header('content-type', 'application/json')
+        try:
+            input_json = decode_json_post(web.data(), dict(
+                title='',
+                editor='',
+                details='',
+                url=''))
+            has_privilege('push')
+            if db.insert(
+                    'msg',
+                    title=input_json['title'],
+                    editor=input_json['editor'],
+                    details=input_json['details'],
+                    url=input_json['url'],
+                    postuser=session.username
+            ) is None:
+                raise Exception('数据错误')
+
+            # 极光的 API
+            server_push(dict(
+                title=input_json['title'],
+                editor=input_json['editor'],
+                url=input_json['url']))
+
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
 
 
 def int_to_privilege(priv_num):
