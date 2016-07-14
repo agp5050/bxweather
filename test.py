@@ -120,6 +120,18 @@ r = requests.post('http://127.0.0.1:1234/api/user/delete', cookies=cookies, json
 print 'true user delete:\t', r.json()
 
 
+# user_all
+r = requests.post('http://127.0.0.1:1234/api/user/login', json=json.dumps(dict(username='admin', password='1234')))
+cookies = dict(webpy_session_id=r.cookies['webpy_session_id'])
+# false
+r = requests.get('http://127.0.0.1:1234/api/user/all')
+print 'false user all:\t', r.json()
+
+# true
+r = requests.get('http://127.0.0.1:1234/api/user/all', cookies=cookies)
+print 'true user all:\t', r.json()
+
+
 # clothes, equip, caution
 # clothes
 r = requests.get('http://127.0.0.1:1234/api/usr/clothes')
@@ -132,4 +144,28 @@ print 'true equip:\t', r.json()
 # caution
 r = requests.get('http://127.0.0.1:1234/api/usr/caution')
 print 'true caution:\t', r.json()
+
+
+# msg_push
+r = requests.post('http://127.0.0.1:1234/api/user/login', json=json.dumps(dict(username='admin', password='1234')))
+cookies = dict(webpy_session_id=r.cookies['webpy_session_id'])
+# false
+r = requests.post(
+    'http://127.0.0.1:1234/api/msg/push',
+    json=json.dumps(dict(title='title 测试', editor='editor 测试', details='details 测试', url='')))
+print 'false msg push:\t', r.json()
+
+# true
+r = requests.post(
+    'http://127.0.0.1:1234/api/msg/push', cookies=cookies,
+    json=json.dumps(dict(title='title 测试', editor='editor 测试', details='details 测试', url='')))
+print 'true msg push:\t', r.json()
+
+
+# msg_delete
+# msg_query
+
+# adboard_add
+# adboard_delete
+# adboard_query
 

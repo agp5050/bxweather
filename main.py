@@ -376,6 +376,7 @@ class msg_push:
 
 
 class ad_add:
+    # 时间都以 UTC 时间请求
     def POST(self):
         web.header('content-type', 'application/json')
         try:
@@ -405,6 +406,10 @@ class ad_add:
                 'success': 0,
                 'msg': str(e)})
 
+
+class ad_delete:
+    def POST(self):
+        pass
 
 # 返回 'yyyy-mm-dd hh:mm:ss'
 # 例如 '2016-07-14 13:58:00'
