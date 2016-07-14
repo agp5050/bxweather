@@ -376,7 +376,38 @@ class msg_push:
 
 
 class msg_query:
-    pass
+    def GET(self, key):
+        today_utc = time.time()
+        today_utc8_gm = get_utc8_gm(today_utc)
+        q = None
+        if key == 'today':
+            start_utc = op_utc(
+                today_utc, 'minus',
+                today_utc8_gm.tm_sec, today_utc8_gm.tm_min, today_utc8_gm.tm_hour)
+            start = construct_localtime(start_utc)
+            q = db.query("SELECT * FROM msg WHERE posttime >= '%s' ORDER BY posttime DESC" % start)
+        elif key == 'week':
+            start_utc = op_utc(
+                today_utc, 'minus',
+                today_utc8_gm.tm_sec, today_utc8_gm.tm_min, today_utc8_gm.tm_hour, today_utc8_gm.tm_wday)
+            start = construct_localtime(start_utc)
+            q = db.query("SELECT * FROM msg WHERE posttime >= '%s' ORDER BY posttime DESC" % start)
+        elif key == 'all':
+            q = db.query("SELECT * FROM msg")
+        else:
+            raise web.notfound()
+
+        result = []
+        for msg in q:
+            result.append({
+                'id': msg.id,
+                'editor': msg.editor,
+                'title': msg.title,
+                'details': msg.details,
+                'url': msg.url,
+                'posttime': msg.posttime.strftime('%Y-%m-%d %H:%m')
+            })
+        return json.dumps(result)
 
 class msg_delete:
     pass
@@ -451,7 +482,7 @@ class ad_query:
         elif key == 'all':
             q = db.query("SELECT * FROM adboard")
         else:
-            raise web.badrequest()
+            raise web.notfound()
 
         result = []
         for ad in q:
