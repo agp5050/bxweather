@@ -460,6 +460,7 @@ class ad_query:
                 'editor': ad.editor,
                 'title': ad.title,
                 'details': ad.details,
+                'starttime': ad.starttime.strftime('%Y-%m-%d %H:%m'),
                 'posttime': ad.posttime.strftime('%Y-%m-%d %H:%m')
             })
         return json.dumps(result)
