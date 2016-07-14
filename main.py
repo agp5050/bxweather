@@ -409,8 +409,26 @@ class msg_query:
             })
         return json.dumps(result)
 
+
 class msg_delete:
-    pass
+    def POST(self):
+        web.header('content-type', 'application/json')
+        try:
+            input_json = decode_json_post(web.data(), dict(id=-1))
+            has_privilege('admin')
+            if input_json['id'] == -1: raise Exception("id 错误")
+            if type(input_json['id']) == str: input_json['id'] = int(input_json['id'])
+            if len(db.select( 'msg', where='id=$id', vars={'id': input_json['id']})) != 1:
+                raise Exception("id 错误")
+            db.delete('msg', where='id=$id', vars={'id': input_json['id']})
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            # traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
 
 
 class ad_add:
@@ -499,7 +517,23 @@ class ad_query:
 
 class ad_delete:
     def POST(self):
-        pass
+        web.header('content-type', 'application/json')
+        try:
+            input_json = decode_json_post(web.data(), dict(id=-1))
+            has_privilege('admin')
+            if input_json['id'] == -1: raise Exception("id 错误")
+            if type(input_json['id']) == str: input_json['id'] = int(input_json['id'])
+            if len(db.select( 'adboard', where='id=$id', vars={'id': input_json['id']})) != 1:
+                raise Exception("id 错误")
+            db.delete('adboard', where='id=$id', vars={'id': input_json['id']})
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            # traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
 
 
 # 返回 'yyyy-mm-dd hh:mm:ss'
