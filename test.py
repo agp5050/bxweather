@@ -118,3 +118,18 @@ query_result = db.select('user', where='username=$username', vars={'username': t
 r = requests.post('http://127.0.0.1:1234/api/user/delete', cookies=cookies, json=dict(
     uid=query_result.uid, username=query_result.username))
 print 'true user delete:\t', r.json()
+
+
+# clothes, equip, caution
+# clothes
+r = requests.get('http://127.0.0.1:1234/api/usr/clothes')
+print 'true clothes:\t', r.json()
+
+# equip
+r = requests.get('http://127.0.0.1:1234/api/usr/equip')
+print 'true equip:\t', r.json()
+
+# caution
+r = requests.get('http://127.0.0.1:1234/api/usr/caution')
+print 'true caution:\t', r.json()
+

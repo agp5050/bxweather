@@ -3,7 +3,7 @@
 
 import web
 import json
-import jpush
+import time
 import requests
 import base64
 import sys
@@ -268,6 +268,7 @@ class user_modify:
             # if input_json['password'] == '': raise Exception("password 不能为空")
             # if type(input_json['privilege']) != dict: raise Exception("privilege 错误")
             if input_json['privilege'] is not None: input_json['privilege'] = privilege_to_int(input_json['privilege'])
+            if type(input_json['uid']) == str: input_json['uid'] = int(input_json['uid'])
             if len(db.select(
                     'user',
                     where='uid=$uid AND username=$username',
@@ -299,6 +300,7 @@ class user_delete:
             has_privilege('admin')
             if input_json['uid'] == -1: raise Exception("uid 错误")
             if input_json['username'] == '': raise Exception("username 不能为空")
+            if type(input_json['uid']) == str: input_json['uid'] = int(input_json['uid'])
             if len(db.select(
                     'user',
                     where='uid=$uid AND username=$username',
@@ -372,6 +374,56 @@ class msg_push:
                 'msg': str(e)})
 
 
+class ad_add:
+    def POST(self):
+        web.header('content-type', 'application/json')
+        try:
+            input_json = decode_json_post(web.data(), dict(
+                title='',
+                editor='',
+                details='',
+                starttime=''))
+            has_privilege('adboard')
+            if input_json['starttime'] == '': input_json['starttime'] = construct_localtime()
+            else: input_json['starttime'] = decode_time(input_json['starttime'])
+            if db.insert(
+                    'adboard',
+                    title=input_json['title'],
+                    editor=input_json['editor'],
+                    details=input_json['details'],
+                    starttime=input_json['starttime'],
+                    postuser=session.username
+            ) is None:
+                raise Exception('数据错误')
+            return json.dumps({
+                'success': 1,
+                'msg': ''})
+        except Exception, e:
+            traceback.print_exc()
+            return json.dumps({
+                'success': 0,
+                'msg': str(e)})
+
+
+# 返回 'yyyy-mm-dd hh:mm:ss'
+# 例如 '2016-07-14 13:58:00'
+# 传入 UTC 时间，返回中国标准时间
+def construct_localtime(utc=None):
+    if utc == None: utc = time.time()
+    utc += 8*60*60  # UTF+8
+    s = time.gmtime(utc)
+    return '%4d-%02d-%02d %02d:%02d:%02d' % (
+        s[0], s[1], s[2], s[3], s[4], s[5]
+    )
+
+
+# 转化 '2016-07-14T13:58:00.000Z'
+def decode_time(time_str):
+    return construct_localtime(
+        time.mktime(
+            time.strptime(time_str.split('.')[0], '%Y-%m-%dT%H:%M:%S')))
+
+
 def int_to_privilege(priv_num):
     priv_list = ['adboard', 'push', 'admin']
     if not (type(priv_num) == int or type(priv_num) == long) or priv_num < 0:
@@ -425,7 +477,7 @@ def decode_json_post(data, params):
         # print "Error: %s" % str(e)
         traceback.print_exc()
         raise web.badrequest()
-    #return dict([(key, paramsf[key]) for key in params if key not in result]
+    # return dict([(key, paramsf[key]) for key in params if key not in result]
     #            + [(key, result[key]) for key in result])
     for key in params:
         if key not in result:
