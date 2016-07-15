@@ -65,8 +65,10 @@ class clothes:
             clothes_1 = ''
             clothes_2 = ''
             clothes_3 = ''
-            r = requests.get(weather_api['now']).json()
-            r_5 = requests.get(weather_api['further']).json()
+            r = requests.get(weather_api['now'])
+            r = r.json()
+            r_5 = requests.get(weather_api['further'])
+            r_5 = r_5.json()
             temp = trans_value(r['main']['temp'], float, 0.0)
             if temp < 10:
                 clothes_1 = "穿衣指数：厚"
@@ -98,17 +100,38 @@ class equip:
         try:
             equip_1 = ""
             equip_2 = ""
-            r = requests.get(weather_api['now']).json()
+            r = requests.get(weather_api['now'])
+            # print r, r.text
+            r = r.json()
             # TO BE CONTINUE: 查description
             # main = r.weather.description
-            key = trans_value(r['weather']['main'], str.lower, '')
-            if key == "clear":
-                equip_1 = "天气晴朗，注意防晒！"
-            elif key == "clouds":
+            key = trans_value(str(r['weather']['main']), str.lower, '')
+            # print key
+            if key == "clouds":
                 equip_1 = "有降雨概率，请备好伞具！"
-            else:
+                equip_2 = "不带伞，神也救不了你！"
+            elif key == "rain":
                 equip_1 = "今日有雨，备好伞具！"
                 equip_2 = "雨天路滑，注意骑行！"
+            elif key == "clear":
+                equip_1 = "天气晴朗，注意防晒！"
+                equip_2 = "别出个门就变成非洲人！"
+            elif key == "snow":
+                equip_1 = "今日有雪，注意防寒！"
+                equip_2 = "家里是堆不了雪人的！"
+            elif key == "extreme":
+                equip_1 = "极端天气，请勿出门！"
+                equip_2 = "原力与你同在！"
+            elif key == "thunderstorm":
+                equip_1 = "雷暴天气，出门请小心！"
+                equip_2 = "注意家用电器安全！"
+            elif key == "mist":
+                equip_1 = "今日有雾，开车请注意！"
+                equip_2 = "保护好呼吸道哟！"
+            elif key == "drizzle":
+                equip_1 = "毛毛雨，雨毛毛！"
+                equip_2 = "听说下雨天，巧克力与音乐更配哟！"
+
             return json.dumps({
                 'equip_1': equip_1,
                 'equip_2': equip_2
@@ -128,11 +151,12 @@ class caution:
             caution_1 = ""
             caution_2 = ""
             caution_3 = ""
-            r = requests.get(weather_api['now']).json()
+            r = requests.get(weather_api['now'])
+            r = r.json()
             humidity = trans_value(r['main']['humidity'], float, 0.0)
             temp = trans_value(r['main']['temp'], float, 0.0)
             windspeed = trans_value(r['wind']['speed'], float, 0.0)
-            key = trans_value(r['weather']['main'], str.lower, '')
+            key = trans_value(str(r['weather']['main']), str.lower, '')
             if humidity < 45:
                 caution_1 = "天干气躁，小心上火，多喝水！"
             if humidity > 65 and temp > 30:
@@ -333,8 +357,12 @@ class msg_push:
                     platform='all',
                     audience='all',
                     notification=dict(
-                        alert='%s: %s' % (msg['editor'], msg['title']),
-                        extras=dict(url=msg['url'])
+                        title='BX weather',
+                        android=dict(
+                            title=msg['title'],
+                            alert='%s: %s' % (msg['editor'], msg['details']) if msg['editor'] != '' else msg['details'],
+                            extras=dict(url=msg['url'])
+                         )
                     ))
                 )
             # print r.json()
@@ -363,6 +391,7 @@ class msg_push:
             server_push(dict(
                 title=input_json['title'],
                 editor=input_json['editor'],
+                details=input_json['details'],
                 url=input_json['url']))
 
             return json.dumps({
@@ -405,7 +434,7 @@ class msg_query:
                 'title': msg.title,
                 'details': msg.details,
                 'url': msg.url,
-                'posttime': msg.posttime.strftime('%Y-%m-%d %H:%m')
+                'posttime': msg.posttime.strftime('%Y-%m-%d %H:%M')
             })
         return json.dumps(result)
 
@@ -509,8 +538,8 @@ class ad_query:
                 'editor': ad.editor,
                 'title': ad.title,
                 'details': ad.details,
-                'starttime': ad.starttime.strftime('%Y-%m-%d %H:%m'),
-                'posttime': ad.posttime.strftime('%Y-%m-%d %H:%m')
+                'starttime': ad.starttime.strftime('%Y-%m-%d %H:%M'),
+                'posttime': ad.posttime.strftime('%Y-%m-%d %H:%M')
             })
         return json.dumps(result)
 
@@ -640,6 +669,7 @@ def trans_value(value, tran_func, default):
     try:
         return tran_func(value)
     except Exception, e:
+        traceback.print_exc()
         return default
 
 
