@@ -689,7 +689,7 @@ if __name__ == "__main__":
         app,
         web.session.DiskStore('sessions'),
         initializer={'login': 0, 'uid': 0, 'username': '', 'privilege': 0})
-    db = web.database(dbn='mysql', db='test', user='', pw='', charset='utf8')
+    db = web.database(dbn='mysql', db='bxweather', user='baixing', pw='baixing', charset='utf8')
     app.run(port=1234)
 
 

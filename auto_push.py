@@ -41,7 +41,7 @@ def decode_time(time_str):
 
 # 返回经过的秒数
 def auto_push():
-    db = web.database(dbn='mysql', db='test', user='', pw='', charset='utf8')
+    db = web.database(dbn='mysql', db='bxweather', user='baixing', pw='baixing', charset='utf8')
     query = db.query
     today_utc = time.time()
     today_utc8_gm = get_utc8_gm(today_utc)

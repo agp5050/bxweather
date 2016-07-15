@@ -5,8 +5,7 @@ import json
 import web
 import requests
 
-
-db = web.database(dbn='mysql', db='test', user='', pw='')
+db = web.database(dbn='mysql', db='bxweather', user='baixing', pw='baixing', charset='utf8')
 
 # status
 r = requests.get('http://127.0.0.1:1234/api/user/status')
