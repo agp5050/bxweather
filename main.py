@@ -31,8 +31,8 @@ urls = (
 )
 
 # 天气预报的 API
-weather_api = {'now': 'http://172.17.14.5:8080/teamwork2/api/weather/now',
-               'further': 'http://172.17.14.5:8080/teamwork2/api/weather/further'}
+weather_api = {'now': 'http://127.0.0.1/teamwork2/api/weather/now',
+               'further': 'http://127.0.0.1/teamwork2/api/weather/further'}
 
 
 class weather:
